@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Chat Assistant</h1>
+        <div id="chat-box" class="chat-box">
+            <!-- Responses will be appended here -->
+        </div>
+        <textarea id="query-input" placeholder="Ask a question..." rows="3"></textarea>
+        <button id="send-btn">Send</button>
+    </div>
+
+    <script>
+        document.getElementById("send-btn").addEventListener("click", function() {
+            const query = document.getElementById("query-input").value;
+            if (query.trim() === "") {
+                alert("Please enter a query.");
+                return;
+            }
+            appendMessage("You: " + query);
+            sendQuery(query);
+        });
+
+        function appendMessage(message) {
+            const chatBox = document.getElementById("chat-box");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+            messageDiv.textContent = message;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the latest message
+        }
+
+        function sendQuery(query) {
+            fetch("http://localhost:5000/query", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    appendMessage("Assistant: " + data.error);
+                } else {
+                    appendMessage("Assistant: " + JSON.stringify(data, null, 2));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                appendMessage("Assistant: Error processing the query.");
+            });
+        }
+    </script>
+</body>
+</html>
